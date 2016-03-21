@@ -4,11 +4,10 @@
 
 (function () {
     var Sudoku = window.Sudoku = {};
-    /* var tabField = $('#field');*/
     var tabField = document.getElementById("tField");
     var btnCalculate = document.getElementById("calculate");
-    var even = document.getElementById("tField");
-    var odd = document.getElementById("tField");
+    var btnСlear = document.getElementById("clear");
+
     var field = [];
     var arrayTest = [3, '', 1, 5, 6, '', 8, 2, '',
         '', '', '', '', '', 8, '', '', 6,
@@ -60,7 +59,9 @@
 
     $(btnCalculate).click(function () {
         var decided = false;
+        var emptyCount = 0;
         while(!decided) {
+            var emptyCountNew = 0;
             decided = true;
             for (var i = 0; i < 9; i++) {
                 for (var j = 0; j < 3; j++) {
@@ -74,12 +75,30 @@
                                 field[i][j][k].value = resalt;
                             }
                             else {
+                                emptyCountNew++;
                                 decided = false;
                             }
                             //номер строки: (Math.floor(i / 3) + 1) * j
                             //номер столбца:(i % 3 + 1) * k
                         }
                     }
+                }
+            }
+            if (emptyCount === emptyCountNew) {
+                alert("Я еще не умею решать такие сложные судоку. Добавьте, пожалуйста, значений для упрощения задачи.")
+                break;
+            }
+            else {
+                emptyCount = emptyCountNew;
+            }
+        }
+    });
+
+    $(btnСlear).click(function () {
+        for (var i = 0; i < 9; i++) {
+            for (var j = 0; j < 3; j++) {
+                for (var k = 0; k < 3; k++) {
+                    field[i][j][k].value = '';
                 }
             }
         }
@@ -117,7 +136,6 @@
         return colum;
     }
 
-    //проверка по правилам
     function verification(square, line, column) {
         var resalt = [];
         for (var i = 1; i < 10; i++) {
@@ -145,6 +163,5 @@
             return false;
         }
     }
-
 
 })();
