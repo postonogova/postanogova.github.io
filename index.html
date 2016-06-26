@@ -1,20 +1,36 @@
 <html>
   <head>
-    <title>Sudoku</title>
+    <title>Postonogova</title>
     <meta charset="UTF-8">
     <script src="js/jquery-2.2.0.js"></script>
-    <link href="style/style.css" rel="stylesheet" type="text/css"/>
+    <script src="js/calculator.js"></script>
+    <link href="style/calcStyle.css" rel="stylesheet" type="text/css"/>
   </head>
   <body>
-  <table id="tField">
-  </table>
-  <p>
-    <button id="clear">Очистить</button>
-    <button id="calculate">Рассчитать</button>
-  </p>
-  <script src="js/sudoku.js"></script>
-  <script>
-    $(document).ready(Sudoku.createTable);
-  </script>
+  <div class="parent">
+    <div class="block">
+      <table id="calc">
+        <tr>
+          <td colspan="4">
+            <input type="text" class="inputField" placeholder="0">
+          </td>
+        </tr>
+      </table>
+      <!--<p>
+        Логин: <input type="text" placeholder="login" id="login" />
+      </p>
+      <p>
+        Пароль: <input type="password" placeholder="password" id="password" />
+      </p>
+      <form>
+        <input type="button" value="Войти" id="input">
+        <input type="button" value="Зарегистрироваться" id = "registration">
+      </form>-->
+    </div>
+  </div>
   </body>
+
+  <script>
+    $(document).ready(Calculator.init);
+  </script>
 </html>
