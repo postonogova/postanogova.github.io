@@ -42,6 +42,7 @@ html, body {
     text-align: center;
     background: #FFFFFF;
     color: #333333;
+    box-sizing: border-box;
 }
 
 .btn:hover {
