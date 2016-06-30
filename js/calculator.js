@@ -58,12 +58,20 @@
                     $inp.val("");
                     break;
                 case '%':
+                    var numbers = Calculator.getAllNumbers($inp.val());
+                    if(numbers.length > 1) {
+                        var num1 = numbers[numbers.length - 1];
+                        var num2 = numbers[numbers.length - 2];
+                        var result = num1 * 100 / num2;
+                        var reg = /[\d,.]/;
+
+                    }
                     //поссчитать процент
                     break;
                 case '=':
                     Calculator.convertPRN();
                     Calculator.calcResult();
-                    $inp.val(Calculator.result);
+                    $inp.val(String(Calculator.result).replace(".", ","));
                     break;
                 default:
                     $inp.val($inp.val() + btnVal);
@@ -78,27 +86,64 @@
         });
     };
 
+    Calculator.getAllNumbers = function(expression) {
+        var numbers = [];
+        var result = Calculator.getNumber(expression, 0);
+        while(result.number != "" || result.newPosition < expression.length) {
+            numbers.push(result.number);
+            result = Calculator.getNumber(expression, result.newPosition);
+        }
+        if (result.number != "") {
+            numbers.push(result.number);
+        }
+        return numbers;
+    };
+
+    Calculator.getNumber = function(expression, position) {
+        var c = expression.charAt(position);
+        var number = "";
+        var newPosition = position;
+        var reg = /[\d,.]/;
+        for (newPosition; newPosition < expression.length || number == ""; i++)
+        if (c.match(reg)) {
+            while (c.match(reg) && newPosition < expression.length) {
+                number += c;
+                newPosition++;
+                if (newPosition < expression.length) {
+                    c = expression.charAt(newPosition);
+                } else {
+                    c = "";
+                }
+            }
+            return {
+                number: number.replace(",", "."),
+                newPosition: newPosition
+            }
+        }
+        return {
+            number: number.replace(",", "."),
+            newPosition: newPosition
+        }
+    };
+
     //--- Перевод выражения в обратную польскую запись
     Calculator.convertPRN = function() {
         var expression = $('.inputField').val();
         var operationStack = [];
         var operation;
+        var reg = /[\d,.]/;
 
         for (var i = 0; i < expression.length; i++) {
             var c = expression.charAt(i);
-            var reg = /[\d,.]/;
             if (c.match(reg)) {
-                var numb = "";
-                while (c.match(reg) && i < expression.length) {
-                    numb += c;
-                    i++;
-                    if (i < expression.length) {
-                        c = expression.charAt(i);
-                    } else {
-                        c = "";
-                    }
+                var result = Calculator.getNumber(expression, i);
+                i = result.newPosition;
+                Calculator.addPRN(result.number, false);
+                if (i < expression.length) {
+                    c = expression.charAt(i);
+                } else {
+                    c = "";
                 }
-                Calculator.addPRN(numb, false);
             }
             switch (c) {
                 case "(":
