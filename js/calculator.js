@@ -64,28 +64,32 @@
                         var num1 = numbers[numbers.length - 1];
                         var num2 = numbers[numbers.length - 2];
                         var result = num2 * num1 / 100;
-                        var reg = /[\d,.]/;
-
+						var res = expression.substring(0, expression.lastIndexOf(String(num1))).concat(String(result).replace(".", ","));
+						$inp.val(res);
                     }
-					var res = expression.substring(0, expression.lastIndexOf(String(num1))).concat(String(result));
-                    $inp.val(res);
-					//поссчитать процент
                     break;
                 case '=':
-                    Calculator.convertPRN();
-                    Calculator.calcResult();
-                    $inp.val(String(Calculator.result).replace(".", ","));
+                    var PRN = Calculator.convertPRN($('.inputField').val());
+                    var result = Calculator.calcResult(PRN);
+                    $inp.val(String(result).replace(".", ","));
                     break;
                 default:
                     $inp.val($inp.val() + btnVal);
                     break;
             }
             $inp.trigger('input');
+			$inp.focus();
         });
 
         $('.inputField').on('input', function () {
             var reg = /[^\d,()×/+-]/g;
             $(this).val($(this).val().replace(reg, ""));
+        });
+		
+		$('.inputField').on('keypress', function (eventObject) {
+			var code = eventObject.which;
+            //var reg = /[^\d,()×/+-]/g;
+            //$(this).val($(this).val().replace(reg, ""));
         });
     };
 
@@ -132,8 +136,8 @@
     };
 
     //--- Перевод выражения в обратную польскую запись
-    Calculator.convertPRN = function() {
-        var expression = $('.inputField').val();
+    Calculator.convertPRN = function(expression) {
+        var PRN = [];
         var operationStack = [];
         var operation;
         var reg = /[\d,.]/;
@@ -143,7 +147,7 @@
             if (c.match(reg)) {
                 var result = Calculator.getNumber(expression, i);
                 i = result.newPosition;
-                Calculator.addPRN(result.number, false);
+                Calculator.addPRN(PRN, result.number, false);
                 if (i < expression.length) {
                     c = expression.charAt(i);
                 } else {
@@ -157,7 +161,7 @@
                 case ")":
                     operation = operationStack.pop();
                     while (operation != "(") {
-                        Calculator.addPRN(operation, true);
+                        Calculator.addPRN(PRN, operation, true);
                         operation = operationStack.pop();
                     }
                     break;
@@ -175,7 +179,7 @@
                         } else {
                             while ((operations[c].priority <= operations[operation].priority) && operationStack.length) {
                                 operation = operationStack.pop();
-                                Calculator.addPRN(operation, true);
+                                Calculator.addPRN(PRN, operation, true);
                                 if (operationStack.length) {
                                     operation = operationStack[operationStack.length - 1];
                                 }
@@ -186,28 +190,30 @@
                     break;
                 default:
                     if (c) {
-                        Calculator.addPRN(c, true);
+                        Calculator.addPRN(PRN, c, true);
                     }
                     break;
             }
         }
         while (operationStack.length) {
             operation = operationStack.pop();
-            Calculator.addPRN(operation, true);
+            Calculator.addPRN(PRN, operation, true);
         }
+		
+		return PRN;
     };
 
-    Calculator.addPRN = function(name, isOperation) {
-        Calculator.PRN.push({
+    Calculator.addPRN = function(PRN, name, isOperation) {
+        PRN.push({
             value: name,
             isOperation: isOperation
         });
     };
 
     //---Вычисление ОПЗ
-    Calculator.calcResult = function() {
+    Calculator.calcResult = function(PRN) {
         var numbers = [];
-        Calculator.PRN.forEach(function(item){
+        PRN.forEach(function(item){
             if (item.isOperation) {
                 var a = Number(numbers.pop());
                 var b = Number(numbers.pop());
@@ -232,6 +238,6 @@
             }
         });
         Calculator.result = numbers.length == 1 ? numbers.pop() : null;
-        Calculator.PRN.length = 0;
+		return Calculator.result;
     }
 })();
