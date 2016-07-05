@@ -50,28 +50,59 @@
     };
 
     Calculator.initEvent = function() {
+        var $inp = $('.inputField');
         $('.btn').on('click', function () {
-            var $inp = $('.inputField');
             var btnVal = $(this).val();
+            var result;
+            var PRN;
             switch (btnVal) {
                 case 'CE':
                     $inp.val("");
                     break;
                 case '%':
-					var expression = $inp.val();
-                    var numbers = Calculator.getAllNumbers(expression);
-                    if(numbers.length > 1) {
+                    var expression = $inp.val();
+                    var reg = /\d/;
+                    if(expression.charAt(expression.length - 1).match(reg)) {
+                        var openingArray = expression.match(/[(]/g);
+                        var closingArray = expression.match(/[)]/g);
+                        var opening = openingArray != null ? openingArray.length : 0;
+                        var closing = closingArray != null ? closingArray.length : 0;
+                        var pos;
+                        if (opening == closing) {
+                            pos = 0;
+                        } else {
+                            var stack = [];
+                            for (var i = 0; i < expression.length; i++) {
+                                var c = expression.charAt(i);
+                                if (c == "(") {
+                                    stack.push(i);
+                                }
+                                if (c == ")") {
+                                    stack.pop();
+                                }
+                            }
+                            pos = stack.pop() + 1;
+                        }
+
+                        var numbers = Calculator.getAllNumbers(expression);
                         var num1 = numbers[numbers.length - 1];
-                        var num2 = numbers[numbers.length - 2];
-                        var result = num2 * num1 / 100;
-						var res = expression.substring(0, expression.lastIndexOf(String(num1))).concat(String(result).replace(".", ","));
-						$inp.val(res);
+
+                        var newExpression = expression.substring(pos, expression.lastIndexOf(String(num1)) - 1);
+
+                        PRN = Calculator.convertPRN(newExpression);
+                        var num2 = Calculator.calcResult(PRN);
+
+                        result = num2 * num1 / 100;
+                        var res = expression.substring(0, expression.lastIndexOf(String(num1))).concat(String(result).replace(".", ","));
+                        $inp.val(res);
+
                     }
                     break;
                 case '=':
-                    var PRN = Calculator.convertPRN($('.inputField').val());
-                    var result = Calculator.calcResult(PRN);
+                    PRN = Calculator.convertPRN($inp.val());
+                    result = Calculator.calcResult(PRN);
                     $inp.val(String(result).replace(".", ","));
+                    Calculator.result = result;
                     break;
                 default:
                     $inp.val($inp.val() + btnVal);
@@ -81,13 +112,13 @@
 			$inp.focus();
         });
 
-        $('.inputField').on('input', function () {
+        $inp.on('input', function () {
             var reg = /[^\d,()×/+-]/g;
             $(this).val($(this).val().replace(reg, ""));
         });
-		
-		$('.inputField').on('keypress', function (eventObject) {
-			var code = eventObject.which;
+
+        $inp.on('keypress', function (eventObject) {
+			//var code = eventObject.which;
             //var reg = /[^\d,()×/+-]/g;
             //$(this).val($(this).val().replace(reg, ""));
         });
@@ -237,7 +268,6 @@
                 numbers.push(item.value);
             }
         });
-        Calculator.result = numbers.length == 1 ? numbers.pop() : null;
-		return Calculator.result;
+		return numbers.length == 1 ? numbers.pop() : null;
     }
 })();
