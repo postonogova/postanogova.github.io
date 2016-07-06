@@ -88,7 +88,7 @@
                             var newExpression = expression.substring(pos, expression.lastIndexOf(Calculator.getStrNum(num1)) - 1);
                             var num2 = Calculator.calculation(newExpression);
                             if (num2) {
-                                result = num2 * num1 / 100;
+                                result = +Number(num2 * num1 / 100).toFixed(7);
                                 var res = expression.substring(0, expression.lastIndexOf(Calculator.getStrNum(num1))).concat(Calculator.getStrNum(result));
                                 $inp.val(res);
                             }
@@ -343,6 +343,6 @@
                 numbers.push(item.value);
             }
         });
-		return numbers.length == 1 ? numbers.pop() : null;
+		return numbers.length == 1 ? +Number(numbers.pop()).toFixed(7) : null;
     }
 })();
