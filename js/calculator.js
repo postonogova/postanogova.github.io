@@ -56,10 +56,11 @@
         $('.btn').on('click', function () {
             var btnVal = $(this).val();
             var result;
-            if (Calculator.validation(btnVal)) {
+            if (Calculator.validation(btnVal) != 0 || btnVal == 'CE' || btnVal == '=') {
                 switch (btnVal) {
                     case 'CE':
                         $inp.val("");
+                        Calculator.result = null;
                         break;
                     case '%':
                         var expression = $inp.val();
@@ -87,8 +88,8 @@
                             var num1 = numbers[numbers.length - 1];
                             var newExpression = expression.substring(pos, expression.lastIndexOf(Calculator.getStrNum(num1)) - 1);
                             var num2 = Calculator.calculation(newExpression);
-                            if (num2) {
-                                result = +Number(num2 * num1 / 100).toFixed(7);
+                            if(num2) {
+                                result = +Number(num2 * num1 / 100).toFixed(6);
                                 var res = expression.substring(0, expression.lastIndexOf(Calculator.getStrNum(num1))).concat(Calculator.getStrNum(result));
                                 $inp.val(res);
                             }
@@ -96,8 +97,12 @@
                         break;
                     case '=':
                         result = Calculator.calculation($inp.val());
-                        $inp.val(Calculator.getStrNum(result));
-                        Calculator.result = result;
+                        if(result) {
+                            $inp.val(Calculator.getStrNum(result));
+                            Calculator.result = result;
+                        } else {
+                            alert("Выражение некорректно!")
+                        }
                         break;
                     default:
                         $inp.val($inp.val() + btnVal);
@@ -115,8 +120,11 @@
 		});
 
         $inp.on('input', function () {
+            var expression = $(this).val();
+            expression = expression.replace(".", ",");
+            expression = expression.replace("*", "×");
             var reg = /[^\d,()×/+-]/g;
-            $(this).val($(this).val().replace(reg, ""));
+            $(this).val(expression.replace(reg, ""));
         });
 
         $inp.on('keypress', function (eventObject) {
@@ -127,19 +135,21 @@
                 $inp.val(Calculator.getStrNum(result));
                 Calculator.result = result;
             }
-            return isValid;
+            return isValid != 0;
         });
     };
 
     Calculator.getAllNumbers = function(expression) {
         var numbers = [];
-        var result = Calculator.getNumber(expression, 0);
-        while(result.number != "" && result.newPosition < expression.length) {
-            numbers.push(result.number);
-            result = Calculator.getNumber(expression, result.newPosition);
-        }
-        if (result.number != "") {
-            numbers.push(result.number);
+        if(expression != "") {
+            var result = Calculator.getNumber(expression, 0);
+            while (result.number != "" && result.newPosition < expression.length) {
+                numbers.push(result.number);
+                result = Calculator.getNumber(expression, result.newPosition);
+            }
+            if (result.number != "") {
+                numbers.push(result.number);
+            }
         }
         return numbers;
     };
@@ -147,25 +157,27 @@
     Calculator.getNumber = function(expression, position) {
         var number = "";
         var newPosition = position;
-        var reg = /[\d,.]/;
-        for (newPosition; newPosition < expression.length || number == ""; newPosition++) {
-			var c = expression.charAt(newPosition);
-			if (c.match(reg)) {
-				while (c.match(reg) && newPosition < expression.length) {
-					number += c;
-					newPosition++;
-					if (newPosition < expression.length) {
-						c = expression.charAt(newPosition);
-					} else {
-						c = "";
-					}
-				}
-				return {
-					number: Calculator.getNum(number),
-					newPosition: newPosition
-				}
-			}
-		}
+        if(expression != "") {
+            var reg = /[\d,.]/;
+            for (newPosition; newPosition < expression.length; newPosition++) {
+                var c = expression.charAt(newPosition);
+                if (c.match(reg)) {
+                    while (c.match(reg) && newPosition < expression.length) {
+                        number += c;
+                        newPosition++;
+                        if (newPosition < expression.length) {
+                            c = expression.charAt(newPosition);
+                        } else {
+                            c = "";
+                        }
+                    }
+                    return {
+                        number: Calculator.getNum(number),
+                        newPosition: newPosition
+                    }
+                }
+            }
+        }
         return {
             number: Calculator.getNum(number),
             newPosition: newPosition
@@ -198,47 +210,83 @@
 
     Calculator.validation = function(symbol) {
         var regNum = /[\d]/g;
-		var regSign = /[×/+-]/g;
+		var regSign = /[*×/+-]/g;
 		var regValid = /[\d,(]/g;
-		var regValid2 = /[×/+,)]/g;
+		var regValid2 = /[*×/+,)]/g;
+        var regValid3 = /[\d.,)]/g;
         var $inp = $('.inputField');
-		expression = $inp.val();
+		var expression = $inp.val();
 		var lastSymbol = expression.charAt(expression.length - 1);
         var result = true;
-        if(Calculator.result != null) {
+        if(Calculator.result) {
             if (symbol.match(regNum)) {
                 $inp.val("");
             }
             Calculator.result = null;
         }
-        result &= !(symbol == ")" && Calculator.countSubStr(expression, "(") == Calculator.countSubStr(expression, ")"));
         if(symbol.match(regSign) && lastSymbol.match(regSign)) {
-			expression = expression.substring(0, expression.length - 1);
-			$inp.val(expression);
+            if (expression.length > 1) {
+                expression = expression.substring(0, expression.length - 1);
+                $inp.val(expression);
+            } else {
+                $inp.val("");
+                result = false;
+            }
 		}
+        result &= !(symbol == ")" && Calculator.countSubStr(expression, "(") == Calculator.countSubStr(expression, ")"));
 		result &= !(symbol.match(regValid2) && lastSymbol == "(");
 		result &= !(symbol.match(regValid) && lastSymbol == ")");
 		result &= !(lastSymbol.match(regNum) && symbol == "(");
 		result &= !(lastSymbol == "," && !symbol.match(regNum));
 		result &= !(symbol == "," && !lastSymbol.match(regNum));
+        result &= !(lastSymbol == "" && symbol.match(regValid2));
+
+        if(symbol.match(regValid3) && result != 0) {
+            expression = expression.concat(symbol);
+            var numbers = Calculator.getAllNumbers(expression);
+            if (numbers.length > 0) {
+                var number = numbers.pop();
+                var newNumber = Calculator.getNum(number);
+                if (~number.indexOf(",")) {
+                    newNumber = number.substring(0, number.indexOf(","));
+                    expression = expression.substring(0, expression.lastIndexOf(Calculator.getStrNum(number))).concat(newNumber);
+                    $inp.val(expression);
+                    result = false;
+                }
+                if(!~number.indexOf(".")) {
+                    newNumber = Number(newNumber);
+                    newNumber = Calculator.getStrNum(newNumber);
+                    expression = expression.substring(0, expression.lastIndexOf(Calculator.getStrNum(number))).concat(newNumber);
+                    $inp.val(expression);
+                    result = false;
+                }
+            }
+        }
+
+
+
 		return result;
     };
 	
 	Calculator.validExpression = function(expression) {
-		if(expression.charAt(0) == "-") {
-			expression = ("0").concat(expression);
-		}
-		expression = expression.replace("(-", "(0-");
-		var opening = Calculator.countSubStr(expression, "(");
+        var regSign = /[*×/+-,]/g;
+        if (expression.charAt(0) == "-") {
+            expression = ("0").concat(expression);
+        }
+        expression = expression.replace("(-", "(0-");
+        if (expression.charAt(expression.length - 1).match(regSign)) {
+            expression = expression.substring(0, expression.length - 1);
+        }
+        var opening = Calculator.countSubStr(expression, "(");
         var closing = Calculator.countSubStr(expression, ")");
-		if(opening != closing) {
-			while(opening > closing) {
-				expression = expression.concat(")");
-				closing++;
-			}
-		}
-		return expression;
-	};
+        if (opening != closing) {
+            while (opening > closing) {
+                expression = expression.concat(")");
+                closing++;
+            }
+        }
+        return expression;
+    };
 
     //--- Перевод выражения в обратную польскую запись
     Calculator.convertPRN = function(expression) {
@@ -335,7 +383,11 @@
                         result = a * b;
                         break;
                     case "/":
-                        result = b / a;
+                        if(a != 0) {
+                            result = b / a;
+                        } else {
+                            return null;
+                        }
                         break;
                 }
                 numbers.push(result);
@@ -343,6 +395,6 @@
                 numbers.push(item.value);
             }
         });
-		return numbers.length == 1 ? +Number(numbers.pop()).toFixed(7) : null;
+		return numbers.length == 1 ? +Number(numbers.pop()).toFixed(6) : null;
     }
 })();
