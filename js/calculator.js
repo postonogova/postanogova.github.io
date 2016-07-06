@@ -52,6 +52,7 @@
     Calculator.initEvent = function() {
         var $inp = $('.inputField');
         $inp.focus();
+		$inp.selectionStart = $inp.val().length;
         $('.btn').on('click', function () {
             var btnVal = $(this).val();
             var result;
@@ -105,7 +106,13 @@
             }
             $inp.trigger('input');
 			$inp.focus();
+			$inp.selectionStart = $inp.val().length;
         });
+		
+		$inp.on('click', function() {
+			$inp.selectionStart = $inp.val().length;
+			console.log('click');
+		});
 
         $inp.on('input', function () {
             var reg = /[^\d,()×/+-]/g;
@@ -113,6 +120,7 @@
         });
 
         $inp.on('keypress', function (eventObject) {
+			$inp.selectionStart = $inp.val().length;
             var isValid = Calculator.validation(eventObject.key);
             if(eventObject.which == 13) {
                 var result = Calculator.calculation($inp.val());
@@ -153,13 +161,13 @@
 					}
 				}
 				return {
-					number: number.replace(",", "."),
+					number: Calculator.getNum(number),
 					newPosition: newPosition
 				}
 			}
 		}
         return {
-            number: number.replace(",", "."),
+            number: Calculator.getNum(number),
             newPosition: newPosition
         }
 		
@@ -167,6 +175,10 @@
 
     Calculator.getStrNum = function(number) {
         return String(number).replace(".", ",");
+    };
+	
+	Calculator.getNum = function(number) {
+        return number.replace(",", ".");
     };
 
     Calculator.calculation = function(expression) {
@@ -185,18 +197,48 @@
     };
 
     Calculator.validation = function(symbol) {
-        var reg = /[\d]/g;
+        var regNum = /[\d]/g;
+		var regSign = /[×/+-]/g;
+		var regValid = /[\d,(]/g;
+		var regValid2 = /[×/+,)]/g;
         var $inp = $('.inputField');
+		expression = $inp.val();
+		var lastSymbol = expression.charAt(expression.length - 1);
         var result = true;
         if(Calculator.result != null) {
-            if (symbol.match(reg)) {
+            if (symbol.match(regNum)) {
                 $inp.val("");
             }
             Calculator.result = null;
         }
-        result &= !(symbol == ")" && Calculator.countSubStr($inp.val(), "(") == Calculator.countSubStr($inp.val(), ")"));
-        return result;
+        result &= !(symbol == ")" && Calculator.countSubStr(expression, "(") == Calculator.countSubStr(expression, ")"));
+        if(symbol.match(regSign) && lastSymbol.match(regSign)) {
+			expression = expression.substring(0, expression.length - 1);
+			$inp.val(expression);
+		}
+		result &= !(symbol.match(regValid2) && lastSymbol == "(");
+		result &= !(symbol.match(regValid) && lastSymbol == ")");
+		result &= !(lastSymbol.match(regNum) && symbol == "(");
+		result &= !(lastSymbol == "," && !symbol.match(regNum));
+		result &= !(symbol == "," && !lastSymbol.match(regNum));
+		return result;
     };
+	
+	Calculator.validExpression = function(expression) {
+		if(expression.charAt(0) == "-") {
+			expression = ("0").concat(expression);
+		}
+		expression = expression.replace("(-", "(0-");
+		var opening = Calculator.countSubStr(expression, "(");
+        var closing = Calculator.countSubStr(expression, ")");
+		if(opening != closing) {
+			while(opening > closing) {
+				expression = expression.concat(")");
+				closing++;
+			}
+		}
+		return expression;
+	};
 
     //--- Перевод выражения в обратную польскую запись
     Calculator.convertPRN = function(expression) {
@@ -204,6 +246,7 @@
         var operationStack = [];
         var operation;
         var reg = /[\d,.]/;
+		expression = Calculator.validExpression(expression);
 
         for (var i = 0; i < expression.length; i++) {
             var c = expression.charAt(i);
