@@ -64,36 +64,8 @@
                         break;
                     case '%':
                         var expression = $inp.val();
-                        var reg = /\d/;
-                        if (expression.charAt(expression.length - 1).match(reg)) {
-                            var opening = Calculator.countSubStr(expression, "(");
-                            var closing = Calculator.countSubStr(expression, ")");
-                            var pos;
-                            if (opening == closing) {
-                                pos = 0;
-                            } else {
-                                var stack = [];
-                                for (var i = 0; i < expression.length; i++) {
-                                    var c = expression.charAt(i);
-                                    if (c == "(") {
-                                        stack.push(i);
-                                    }
-                                    if (c == ")") {
-                                        stack.pop();
-                                    }
-                                }
-                                pos = stack.pop() + 1;
-                            }
-                            var numbers = Calculator.getAllNumbers(expression);
-                            var num1 = numbers[numbers.length - 1];
-                            var newExpression = expression.substring(pos, expression.lastIndexOf(Calculator.getStrNum(num1)) - 1);
-                            var num2 = Calculator.calculation(newExpression);
-                            if(num2) {
-                                result = +Number(num2 * num1 / 100).toFixed(6);
-                                var res = expression.substring(0, expression.lastIndexOf(Calculator.getStrNum(num1))).concat(Calculator.getStrNum(result));
-                                $inp.val(res);
-                            }
-                        }
+                        var result = Calculator.calcPercent(expression);
+						$inp.val(result);
                         break;
                     case '=':
                         result = Calculator.calculation($inp.val());
@@ -135,6 +107,11 @@
                 $inp.val(Calculator.getStrNum(result));
                 Calculator.result = result;
             }
+			if(eventObject.key == "%") {
+				var expression = $inp.val();
+                var result = Calculator.calcPercent(expression);
+				$inp.val(result);
+			}
             return isValid != 0;
         });
     };
@@ -267,6 +244,40 @@
 
 		return result;
     };
+	
+	Calculator.calcPercent = function(expression) {
+		var reg = /\d/;
+		var res = expression;
+        if (expression.charAt(expression.length - 1).match(reg)) {
+            var opening = Calculator.countSubStr(expression, "(");
+            var closing = Calculator.countSubStr(expression, ")");
+            var pos;
+            if (opening == closing) {
+                pos = 0;
+            } else {
+                var stack = [];
+                for (var i = 0; i < expression.length; i++) {
+                    var c = expression.charAt(i);
+                    if (c == "(") {
+                        stack.push(i);
+                    }
+                    if (c == ")") {
+                        stack.pop();
+                    }
+                }
+                pos = stack.pop() + 1;
+            }
+            var numbers = Calculator.getAllNumbers(expression);
+            var num1 = numbers[numbers.length - 1];
+            var newExpression = expression.substring(pos, expression.lastIndexOf(Calculator.getStrNum(num1)) - 1);
+            var num2 = Calculator.calculation(newExpression);
+            if(num2) {
+                var result = +Number(num2 * num1 / 100).toFixed(6);
+                res = expression.substring(0, expression.lastIndexOf(Calculator.getStrNum(num1))).concat(Calculator.getStrNum(result));
+            }
+        }
+		return res;
+	};
 	
 	Calculator.validExpression = function(expression) {
         var regSign = /[*×/+,-]/g;
