@@ -269,7 +269,7 @@
     };
 	
 	Calculator.validExpression = function(expression) {
-        var regSign = /[*×/+-,]/g;
+        var regSign = /[*×/+,-]/g;
         if (expression.charAt(0) == "-") {
             expression = ("0").concat(expression);
         }
