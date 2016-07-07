@@ -213,7 +213,7 @@
 		var regSign = /[*×/+-]/g;
 		var regValid = /[\d,(]/g;
 		var regValid2 = /[*×/+,)]/g;
-        var regValid3 = /[\d.,)]/g;
+        var regValid3 = /[\d.,]/g;
         var $inp = $('.inputField');
 		var expression = $inp.val();
 		var lastSymbol = expression.charAt(expression.length - 1);
