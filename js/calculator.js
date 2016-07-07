@@ -68,13 +68,15 @@
 						$inp.val(result);
                         break;
                     case '=':
-                        result = Calculator.calculation($inp.val());
-                        if(result !== null) {
-                            $inp.val(Calculator.getStrNum(result));
-                            Calculator.result = result;
-                        } else {
-                            alert("Выражение некорректно!")
-                        }
+						if($inp.val() !== "") {
+							result = Calculator.calculation($inp.val());
+							if(result !== null) {
+								$inp.val(Calculator.getStrNum(result));
+								Calculator.result = result;
+							} else {
+								alert("Выражение некорректно!")
+							}
+						}
                         break;
                     default:
                         $inp.val($inp.val() + btnVal);
