@@ -69,7 +69,7 @@
                         break;
                     case '=':
                         result = Calculator.calculation($inp.val());
-                        if(result) {
+                        if(result == null) {
                             $inp.val(Calculator.getStrNum(result));
                             Calculator.result = result;
                         } else {
