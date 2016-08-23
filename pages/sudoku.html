@@ -3,15 +3,23 @@
     <title>Sudoku</title>
     <meta charset="UTF-8">
     <script src="../js/jquery-2.2.0.js"></script>
+	<link href="../style/style-main.css" rel="stylesheet" type="text/css"/>
     <link href="../style/style.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
-<table id="tField">
-</table>
-<p>
-    <button id="clear">Очистить</button>
-    <button id="calculate">Рассчитать</button>
-</p>
+<header>
+	<h1><a href="../index.html">postonogova.github.io</a></h1>
+</header>
+<article>
+	<div class="block">
+		<table id="tField">
+		</table>
+		<p>
+			<button id="clear">Очистить</button>
+			<button id="calculate">Рассчитать</button>
+		</p>
+	</div>
+</article>
 <script src="../js/sudoku.js"></script>
 <script>
     $(document).ready(Sudoku.createTable);
