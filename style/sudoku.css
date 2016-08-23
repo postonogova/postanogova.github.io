@@ -7,7 +7,6 @@ html, body {
 
 #tField {
     padding: 0;
-    margin: 0;
     border: 1px solid #76d2a0;
     background-color: #cbffda;
 }
@@ -20,13 +19,3 @@ html, body {
     font-size: 15px;
     text-align: center;
 }
-/*
-
-.even {
-    background-color: #68cad2;
-    border: 0;
-}
-
-.odd {
-    border: 0;
-}*/
